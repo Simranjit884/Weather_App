@@ -2,8 +2,15 @@ import React,{Component} from 'react';
 import {connect} from 'react-redux';
 import Chart from '../components/chart';
 import GoogleMap from '../components/google_map';
+import {deletecity} from '../actions/deleterow';
+import {bindActionCreators} from 'redux';
 
 class WeatherList extends Component{
+    constructor(){
+        super();
+        this.renderWeather = this.renderWeather.bind(this);
+    }
+    
     renderWeather(cityData){
         const name=cityData.city.name;
         const temps=_.map(cityData.list.map(weather=>weather.main.temp),(temp)=>temp-273);
@@ -13,8 +20,13 @@ class WeatherList extends Component{
         const lon=cityData.city.coord.lon;
 
         return (
-            <tr key={name}>
-                <td><GoogleMap lon={lon} lat={lat} /></td>
+            
+            <tr key={cityData.city.id}>
+                <td><button 
+                    onClick={()=>this.props.deletecity(cityData.city.id)}
+                    className="bttncross">
+                    <i className="fa fa-times"></i>&times;</button>
+                    <GoogleMap lon={lon} lat={lat} /></td>
                 <td><Chart data={temps} color="red" units="C" /></td>
                 <td><Chart data={press} color="green" units="hPa" /></td>
                 <td><Chart data={humid} color="blue" units="%" /></td>
@@ -23,7 +35,11 @@ class WeatherList extends Component{
     }
 
     render(){
+        if(!this.props.weather){
+            return <div>Loading...</div>;
+        }
         return(
+            <div>
             <table className="table table-hover">
                 <thead>
                     <tr>
@@ -37,6 +53,7 @@ class WeatherList extends Component{
                     {this.props.weather.map(this.renderWeather)}
                 </tbody>
             </table>
+            </div>
         );
     }
 }
@@ -45,4 +62,7 @@ function mapStateToProps({weather}){        //{weather} due to ES6 in the argume
     return {weather};                       //{weather} due to ES6 in the return statement is ==={weather:weather}
 }
 
-export default connect(mapStateToProps)(WeatherList);
+function mapDispatchToProps(dispatch){
+    return bindActionCreators({deletecity},dispatch);
+}
+export default connect(mapStateToProps,mapDispatchToProps)(WeatherList);
